@@ -5,43 +5,15 @@ extern crate opengl_graphics;
 
 use piston::window::WindowSettings;
 use piston::event_loop::*;
-use piston::input::*;
+use piston::input::{RenderEvent, UpdateEvent};
+use piston::input::keyboard::Key;
 use glutin_window::GlutinWindow as Window;
 use opengl_graphics::{ GlGraphics, OpenGL };
 
-pub struct App {
-    gl: GlGraphics, // OpenGL drawing backend.
-    rotation: f64   // Rotation for the square.
-}
-
-impl App {
-    fn render(&mut self, args: &RenderArgs) {
-        use graphics::*;
-
-        const GREEN: [f32; 4] = [0.0, 1.0, 0.0, 1.0];
-        const RED:   [f32; 4] = [1.0, 0.0, 0.0, 1.0];
-
-        let square = rectangle::square(0.0, 0.0, 50.0);
-        let (x, y) = ((args.width / 2) as f64,
-                      (args.height / 2) as f64);
-
-        self.gl.draw(args.viewport(), |c, gl| {
-            // Clear the screen.
-            clear(GREEN, gl);
-
-            let transform = c.transform.trans(x, y)
-                                       .trans(-25.0, -25.0);
-
-            // Draw a box rotating around the middle of the screen.
-            rectangle(RED, square, transform, gl);
-        });
-    }
-
-    fn update(&mut self, args: &UpdateArgs) {
-        // Rotate 2 radians per second.
-        self.rotation += 2.0 * args.dt;
-    }
-}
+mod app;
+mod input_state;
+use app::App;
+use input_state::InputState;
 
 fn main() {
     // Change this to OpenGL::V2_1 if not working.
@@ -50,7 +22,7 @@ fn main() {
     // Create an Glutin window.
     let mut window: Window = WindowSettings::new(
             "spinning-square",
-            [200, 200]
+            [800, 800]
         )
         .opengl(opengl)
         .exit_on_esc(true)
@@ -58,19 +30,19 @@ fn main() {
         .unwrap();
 
     // Create a new game and run it.
-    let mut app = App {
-        gl: GlGraphics::new(opengl),
-        rotation: 0.0
-    };
-
+    let mut input_state = InputState::default();
+    let mut app = App::new(GlGraphics::new(opengl));
     let mut events = Events::new(EventSettings::new());
+
     while let Some(e) = events.next(&mut window) {
         if let Some(r) = e.render_args() {
             app.render(&r);
         }
 
+        input_state.handle_event(&e);
+
         if let Some(u) = e.update_args() {
-            app.update(&u);
+            app.update(&u, &input_state);
         }
     }
 }
