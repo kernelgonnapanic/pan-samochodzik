@@ -6,6 +6,7 @@ pub struct InputState {
     pub left: bool,
     pub right: bool,
     pub back: bool,
+    pub space: bool
 }
 
 impl InputState {
@@ -26,5 +27,6 @@ impl InputState {
         bind!(left, A);
         bind!(right, D);
         bind!(back, S);
+        bind!(space, Space);
     }
 }

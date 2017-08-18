@@ -12,6 +12,8 @@ use opengl_graphics::{ GlGraphics, OpenGL };
 
 mod app;
 mod input_state;
+mod car_steering;
+mod vec_math;
 use app::App;
 use input_state::InputState;
 
@@ -32,7 +34,10 @@ fn main() {
     // Create a new game and run it.
     let mut input_state = InputState::default();
     let mut app = App::new(GlGraphics::new(opengl));
-    let mut events = Events::new(EventSettings::new());
+    let mut events = Events::new(
+        EventSettings::new()
+            // .ups(60)
+    );
 
     while let Some(e) = events.next(&mut window) {
         if let Some(r) = e.render_args() {
