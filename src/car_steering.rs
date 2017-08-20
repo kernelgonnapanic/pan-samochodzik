@@ -103,12 +103,13 @@ pub struct CarSteering {
 }
 
 impl CarSteering {
-    pub fn new(cfg: SteeringCfg, position: Vec2d) -> Self {
+    pub fn new(cfg: SteeringCfg, position: Vec2d, heading: f64) -> Self {
 
         Self {
             comp: CarConfigComputed::from_config(&cfg),
             cfg,
             position,
+            heading,
             ..Self::default()
         }
     }
@@ -245,22 +246,33 @@ impl CarSteering {
         math::translate(self.position).rot_rad(self.heading)
     }
 
-    pub fn draw (&self, transform: Matrix2d, gl: &mut GlGraphics) {
+    pub fn get_position(&self) -> Vec2d {
+        self.position
+    }
+    
+    pub fn get_rotation(&self) -> f64 {
+        self.heading
+    }
+
+    pub fn draw (&self, transform: Matrix2d, gl: &mut GlGraphics, alt_color: bool) {
         use graphics::*;
+
+        let c_base = if alt_color { C_BLUE } else { C_RED };
+        let c_wheels = if alt_color { C_RED } else { C_BLUE };
 
         let cfg = self.cfg;
 
-        let mat = transform.zoom(10.0).append_transform(self.get_transform());
-
-        rectangle(C_RED, [-cfg.cg_to_rear, -cfg.half_width, cfg.cg_to_front + cfg.cg_to_rear, cfg.half_width * 2.0], mat, gl);
+        let mat = transform.append_transform(self.get_transform());
+        
+        rectangle(c_base, [-cfg.cg_to_rear, -cfg.half_width, cfg.cg_to_front + cfg.cg_to_rear, cfg.half_width * 2.0], mat, gl);
 
         let mat_rear = mat.trans(-cfg.cg_to_rear_axle, 0.0);
 
-        rectangle(C_BLUE, [-cfg.wheel_radius, -cfg.wheel_width / 2.0, cfg.wheel_radius * 2.0, cfg.wheel_width], mat_rear, gl);
+        rectangle(c_wheels, [-cfg.wheel_radius, -cfg.wheel_width / 2.0, cfg.wheel_radius * 2.0, cfg.wheel_width], mat_rear, gl);
 
         let mat_front = mat.trans(cfg.cg_to_front_axle, 0.0).rot_rad(self.steer_angle);
 
-        rectangle(C_BLUE, [-cfg.wheel_radius, -cfg.wheel_width / 2.0, cfg.wheel_radius * 2.0, cfg.wheel_width], mat_front, gl);
+        rectangle(c_wheels, [-cfg.wheel_radius, -cfg.wheel_width / 2.0, cfg.wheel_radius * 2.0, cfg.wheel_width], mat_front, gl);
 
         // polygon(C_BLUE, &[[15.0, -10.0], [15.0, 10.0], [25.0, 6.0], [25.0, -6.0]], mat, gl)
 

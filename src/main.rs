@@ -1,7 +1,11 @@
+#![feature(iterator_step_by)]
+
 extern crate piston;
 extern crate graphics;
 extern crate glutin_window;
 extern crate opengl_graphics;
+extern crate ncollide;
+extern crate nalgebra as na;
 
 use piston::window::WindowSettings;
 use piston::event_loop::*;
@@ -11,6 +15,7 @@ use glutin_window::GlutinWindow as Window;
 use opengl_graphics::{ GlGraphics, OpenGL };
 
 mod app;
+mod track;
 mod input_state;
 mod car_steering;
 mod vec_math;
@@ -24,7 +29,7 @@ fn main() {
     // Create an Glutin window.
     let mut window: Window = WindowSettings::new(
             "spinning-square",
-            [800, 800]
+            [600, 600]
         )
         .opengl(opengl)
         .exit_on_esc(true)
@@ -36,9 +41,9 @@ fn main() {
     let mut app = App::new(GlGraphics::new(opengl));
     let mut events = Events::new(
         EventSettings::new()
-            // .ups(60)
+            .ups(120)
     );
-
+    
     while let Some(e) = events.next(&mut window) {
         if let Some(r) = e.render_args() {
             app.render(&r);
